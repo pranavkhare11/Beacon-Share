@@ -1,0 +1,98 @@
+.toggle-container {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+}
+
+.toggle-container:hover {
+  transform: scale(1.05);
+}
+
+.toggle-container:active {
+  transform: scale(0.92);
+}
+
+.toggle-container:focus-visible {
+  outline: 2px solid var(--text-main);
+  outline-offset: 3px;
+}
+
+.toggle-dial {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffffff, #e6e6e6);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08), inset 0 1px 1px #ffffff;
+  transform: rotate(0deg);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              background 0.3s ease, 
+              border-color 0.3s ease, 
+              box-shadow 0.3s ease;
+}
+
+.toggle-dial.dark {
+  transform: rotate(180deg);
+  background: linear-gradient(135deg, #222222, #111111);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
+}
+
+.dial-marking {
+  position: absolute;
+  width: 1px;
+  height: 3px;
+  background-color: var(--line-2);
+  opacity: 0.8;
+  transition: background-color 0.3s ease;
+}
+
+.dial-marking-1 { top: 2px; left: 50%; transform: translateX(-50%); }
+.dial-marking-2 { right: 2px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.dial-marking-3 { bottom: 2px; left: 50%; transform: translateX(-50%); }
+.dial-marking-4 { left: 2px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
+.icon-wrapper {
+  width: 13px;
+  height: 13px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+}
+
+.icon-wrapper svg {
+  width: 100%;
+  height: 100%;
+}
+
+.toggle-dial.dark .icon-wrapper {
+  transform: rotate(-180deg);
+}
+
+.led-indicator {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--red);
+  box-shadow: 0 0 4px var(--red);
+  animation: pulseLed 2s infinite ease-in-out;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}

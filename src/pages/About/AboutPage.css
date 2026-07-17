@@ -1,0 +1,95 @@
+.about-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.about-card {
+  width: 100%;
+  padding: 2.25rem 2.5rem;
+  border-radius: 24px;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.about-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin-bottom: 1.5rem;
+}
+
+.divider-line {
+  border: 0;
+  height: 1px;
+  border-top: 1px dashed var(--line);
+  margin: 1.5rem 0;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--line-2);
+  padding-bottom: 6px;
+}
+
+.spec-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.spec-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+}
+
+.section-subtitle {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--text-soft);
+  margin-bottom: 1.25rem;
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step-num {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.step-text {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+@media (max-width: 580px) {
+  .about-card {
+    padding: 1.5rem;
+  }
+}

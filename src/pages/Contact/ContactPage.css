@@ -1,0 +1,106 @@
+.contact-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.contact-card {
+  width: 100%;
+  padding: 2.25rem 2.5rem;
+  border-radius: 24px;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-desc {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  margin-bottom: 2rem;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.contact-input, .contact-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.contact-input:focus, .contact-textarea:focus {
+  outline: none;
+  border-color: var(--text-main);
+  background: var(--white-3);
+}
+
+.contact-textarea {
+  resize: vertical;
+}
+
+.contact-submit-btn {
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.contact-submit-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+.contact-success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--white-3);
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.contact-success-state h3 {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--text-main);
+  margin: 1rem 0 0.5rem;
+}
+
+.contact-success-state p {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+@media (max-width: 580px) {
+  .contact-card {
+    padding: 1.5rem;
+  }
+}

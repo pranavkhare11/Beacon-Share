@@ -1,0 +1,482 @@
+/* Receiver Page Styles */
+
+.receiver-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  flex: 1;
+  padding: 1.5rem 0;
+}
+
+/* Connection Portal Card */
+.receiver-connect-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border-radius: 22px;
+  margin: 1.5rem auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.receiver-connect-card h2 {
+  font-family: var(--font-ui);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0.5rem 0 1rem;
+}
+
+.receiver-desc {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.receiver-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.input-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.receiver-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--line-2);
+  background: linear-gradient(170deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  padding: 0 1rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+}
+
+.receiver-input:focus {
+  outline: none;
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2px var(--white-4);
+}
+
+.passcode-input {
+  letter-spacing: 0.8em;
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+.passcode-input::placeholder {
+  letter-spacing: 0.2em;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.error-message-bar {
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: var(--chip-text);
+  background: var(--red-soft);
+  border: 1px solid var(--chip-border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-align: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.establish-btn {
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.establish-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+.establish-btn.connecting {
+  background: var(--white-3);
+  color: var(--text-faint);
+  border-color: var(--line);
+  cursor: wait;
+}
+
+/* Connected Deck Page Layout */
+.receiver-deck-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 1.5rem auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.receiver-files-card {
+  padding: 2.25rem 2rem;
+  border-radius: 22px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.linked-peer-spec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.linked-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+}
+
+.receiver-file-list-container {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white-1);
+  overflow: hidden;
+}
+
+.receiver-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.receiver-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px dashed var(--line);
+  transition: background-color 0.2s ease;
+  opacity: 0.65;
+  width: 100%;
+  overflow: hidden;
+}
+
+.receiver-file-item:last-child {
+  border-bottom: none;
+}
+
+.receiver-file-item.active {
+  background-color: var(--white-3);
+  opacity: 1;
+  border-left: 3px solid var(--red);
+}
+
+.receiver-file-item.finished {
+  opacity: 0.9;
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+.receiver-file-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.receiver-file-name {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receiver-file-type {
+  font-family: var(--font-dot);
+  font-size: 0.58rem;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.receiver-file-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.receiver-file-size {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+.status-badge {
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.finished {
+  background: var(--red-soft);
+  color: var(--chip-text);
+  border: 1px solid var(--chip-border);
+}
+
+.status-badge.downloading {
+  background: var(--white-3);
+  color: var(--text-main);
+  border: 1px solid var(--line-2);
+}
+
+.status-badge.pending {
+  background: var(--white-2);
+  color: var(--text-faint);
+  border: 1px solid var(--line);
+}
+
+/* Active Download Details Card */
+.receiver-progress-card {
+  padding: 1.5rem 1.75rem;
+  border-radius: 22px;
+}
+
+.progress-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.progress-card-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.progress-card-meta {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.receiver-deck-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-top: 1px dashed var(--line);
+  padding-top: 1rem;
+}
+
+.deck-status-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.summary-value {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text-main);
+}
+
+.disconnect-btn {
+  height: 34px;
+  padding: 0 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+}
+
+.disconnect-btn:hover {
+  background: var(--red-soft);
+  border-color: var(--chip-border);
+  color: var(--chip-text);
+}
+
+/* Custom scrollbars for incoming file queue */
+.receiver-file-list::-webkit-scrollbar {
+  width: 6px;
+}
+.receiver-file-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.receiver-file-list::-webkit-scrollbar-thumb {
+  background-color: var(--line-2);
+  border-radius: 3px;
+}
+
+/* Direct URL Peer Info Card */
+.direct-link-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--white-3);
+  border: 1px dashed var(--line);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.direct-link-info .info-label {
+  color: var(--text-faint);
+}
+
+.direct-link-info .info-value {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+@keyframes textBlink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.blink {
+  animation: textBlink 1.5s infinite ease-in-out;
+}
+
+.download-item-btn {
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-family: var(--font-dot);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+}
+
+.download-item-btn:hover:not(:disabled) {
+  background: var(--text-main);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+
+.download-item-btn:disabled {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.receiver-download-all-btn {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-family: var(--font-dot);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+}
+
+.receiver-download-all-btn:hover:not(:disabled) {
+  background: var(--text-main);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+
+.receiver-download-all-btn:disabled {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+/* Reconstructed Progress Bar styles */
+.deck-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.deck-progress-bar-wrapper {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--white-3);
+  border: 1px solid var(--line-2);
+  overflow: hidden;
+}
+
+.deck-progress-bar-fill {
+  height: 100%;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  transition: width 0.3s ease;
+}
+
+.deck-progress-percentage {
+  font-size: 0.78rem;
+  color: var(--text-main);
+  font-weight: 600;
+  min-width: 2.25rem;
+  text-align: right;
+}
+
+

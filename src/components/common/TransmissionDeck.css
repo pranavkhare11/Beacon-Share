@@ -1,0 +1,300 @@
+/* P2P Transmission Deck Styling */
+
+.p2p-transmission-deck {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: fadeIn 0.3s ease-out;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.deck-status-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-status-text {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.deck-meta-spec {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.deck-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.deck-progress-bar-wrapper {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--white-3);
+  border: 1px solid var(--line-2);
+  overflow: hidden;
+}
+
+.deck-progress-bar-fill {
+  height: 100%;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  transition: width 0.3s ease;
+}
+
+.deck-progress-percentage {
+  font-size: 0.78rem;
+  color: var(--text-main);
+  font-weight: 600;
+  min-width: 2.25rem;
+  text-align: right;
+}
+
+.deck-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-top: 1px dashed var(--line);
+  padding-top: 1.25rem;
+}
+
+.deck-peer-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-peer-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.peer-id-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white-3);
+  border: 1px dashed var(--line);
+  padding: 2px;
+  border-radius: 8px;
+}
+
+.deck-peer-id {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--text-main);
+  background: transparent;
+  padding: 3px 8px;
+  border: none;
+}
+
+.copy-link-btn {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--white-1);
+  color: var(--text-soft);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.copy-link-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+}
+
+.copy-link-btn.copied {
+  background: var(--red-soft);
+  border-color: var(--chip-border);
+  color: var(--chip-text);
+}
+
+.deck-action-btn {
+  height: 34px;
+  padding: 0 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+}
+
+.deck-action-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+.deck-action-btn.active {
+  background: var(--red-soft);
+  border-color: var(--chip-border);
+  color: var(--chip-text);
+}
+
+.deck-action-btn.active:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+}
+
+/* Mechanical Screw Details */
+.deck-screw {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  border: 1px solid var(--line-2);
+  pointer-events: none;
+}
+
+.deck-screw::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: #888888;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.deck-screw.top-left { top: 12px; left: 12px; }
+.deck-screw.top-right { top: 12px; right: 12px; }
+.deck-screw.bottom-left { bottom: 12px; left: 12px; }
+.deck-screw.bottom-right { bottom: 12px; right: 12px; }
+
+/* Security Settings Switch Toggle */
+.security-settings-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 250px; /* Restrict container size to prevent shifting adjacent items */
+}
+
+.pin-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0; /* Keep toggle switch width stable */
+}
+
+.pin-checkbox-hidden {
+  display: none;
+}
+
+.pin-switch {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 99px;
+  background: var(--white-3);
+  border: 1px solid var(--line-2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pin-switch::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pin-switch.enabled {
+  background: var(--red-soft);
+  border-color: var(--chip-border);
+}
+
+.pin-switch.enabled::before {
+  left: 14px;
+  background: var(--red);
+}
+
+.pin-toggle-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.pin-display-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.pin-code {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--chip-text);
+  background: var(--red-soft);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--chip-border);
+  box-shadow: inset 0 1px 2px rgba(209, 31, 47, 0.05);
+}
+
+.security-settings-group.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.security-settings-group.disabled .pin-toggle-container {
+  cursor: not-allowed;
+}
+
+.pin-switch.locked {
+  background: var(--white-3);
+  border-color: var(--line);
+}
+
+.pin-switch.enabled.locked::before {
+  background: var(--text-soft);
+}
+

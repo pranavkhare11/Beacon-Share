@@ -1,0 +1,299 @@
+.drop-zone-wrapper {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 1.5rem auto;
+  transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drop-zone-wrapper.has-files {
+  max-width: 1200px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.drop-zone-wrapper.has-files .drop-zone {
+  min-height: 280px;
+  padding: 2rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .drop-zone-wrapper.has-files {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+  }
+}
+
+.drop-zone {
+  position: relative;
+  min-height: 360px;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    radial-gradient(var(--white-3) 1px, transparent 1px),
+    linear-gradient(170deg, var(--white-1), var(--white-2));
+  background-size: 12px 12px, 100% 100%;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              background 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.drop-zone:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-main);
+  box-shadow: var(--shadow-soft);
+}
+
+.drop-zone.dragging {
+  border-color: var(--red);
+  background:
+    radial-gradient(var(--white-3) 1px, transparent 1px),
+    linear-gradient(170deg, var(--white-2), var(--white-3));
+  background-size: 12px 12px, 100% 100%;
+  box-shadow: 0 0 15px var(--red-soft);
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+/* Mechanical Screw Details */
+.drop-zone-screw {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  border: 1px solid var(--line-2);
+  pointer-events: none;
+}
+
+.drop-zone-screw::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: #888888;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.drop-zone-screw.top-left { top: 12px; left: 12px; }
+.drop-zone-screw.top-right { top: 12px; right: 12px; }
+.drop-zone-screw.bottom-left { bottom: 12px; left: 12px; }
+.drop-zone-screw.bottom-right { bottom: 12px; right: 12px; }
+
+/* Status Indicators */
+.drop-status-led-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.drop-status-text {
+  font-family: var(--font-dot);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.decor-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  box-shadow: none;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.decor-led.active {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  animation: blinkLed 1s infinite ease-in-out;
+}
+
+.decor-led.ready {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  animation: blinkLed 2.5s infinite ease-in-out;
+}
+
+/* Typography styles */
+.drop-zone strong {
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.drop-action {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.drop-hint {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  max-width: 24rem;
+  line-height: 1.4;
+}
+
+/* Selected Files Queue */
+.drop-feedback {
+  position: relative;
+  min-height: 360px;
+  padding: 2rem;
+  border-radius: 22px;
+  background:
+    radial-gradient(var(--white-3) 1px, transparent 1px),
+    linear-gradient(170deg, var(--white-1), var(--white-2));
+  background-size: 12px 12px, 100% 100%;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+  animation: fadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.file-list-container {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white-1);
+  margin-top: 0.25rem;
+  overflow: hidden;
+}
+
+/* Custom mini scrollbar for file queue */
+.file-list::-webkit-scrollbar {
+  width: 6px;
+}
+.file-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.file-list::-webkit-scrollbar-thumb {
+  background-color: var(--line-2);
+  border-radius: 3px;
+}
+
+.file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px dashed var(--line);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-item:hover {
+  background-color: var(--white-3);
+  transform: translateX(2px);
+}
+
+.file-info-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.file-name {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-type-label {
+  font-family: var(--font-dot);
+  font-size: 0.58rem;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.file-meta-group {
+  display: flex;
+  align-items: center;
+}
+
+.file-size-badge {
+  font-family: var(--font-dot);
+  font-size: 0.68rem;
+  color: var(--chip-text);
+  background: var(--red-soft);
+  border: 1px solid var(--chip-border);
+  padding: 2px 8px;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.file-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  margin-left: 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.file-delete-btn:hover {
+  color: var(--red);
+  background-color: var(--red-soft);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
