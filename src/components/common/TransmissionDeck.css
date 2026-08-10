@@ -205,8 +205,9 @@
 .security-settings-group {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  width: 250px; /* Restrict container size to prevent shifting adjacent items */
+  gap: 0.75rem;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 
 .pin-toggle-container {
@@ -297,4 +298,40 @@
 .pin-switch.enabled.locked::before {
   background: var(--text-soft);
 }
+
+/* Responsive Rules for Transmission Deck */
+@media (max-width: 640px) {
+  .p2p-transmission-deck {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+  }
+
+  .deck-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .deck-peer-display {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .peer-id-badge-group {
+    max-width: 100%;
+  }
+
+  .deck-peer-id {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .deck-action-btn {
+    width: 100%;
+  }
+}
+
 

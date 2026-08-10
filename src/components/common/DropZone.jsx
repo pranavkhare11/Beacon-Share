@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import useDropZoneService from '../../hooks/useDropZoneService.js';
+import ThemedMediaPlayer from './ThemedMediaPlayer.jsx';
 import './DropZone.css';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -21,6 +22,16 @@ const getFileType = (file) => {
   return extMatch ? extMatch[1].toUpperCase() : 'FILE';
 };
 
+// Helper to detect playable/viewable media types
+const getMediaType = (filename) => {
+  if (!filename) return null;
+  const ext = filename.split('.').pop().toLowerCase();
+  if (['mp4', 'webm', 'mkv', 'mov', 'avi', 'm4v', 'ogv', '3gp'].includes(ext)) return 'video';
+  if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'opus', 'wma'].includes(ext)) return 'audio';
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)) return 'image';
+  return null;
+};
+
 // Helper to format file size with appropriate unit
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 B';
@@ -31,26 +42,33 @@ const formatFileSize = (bytes) => {
 };
 
 export default function DropZone({ filesList, setFilesList }) {
+  const [activeMediaModal, setActiveMediaModal] = useState(null);
+
+  const handleOpenMedia = (file) => {
+    const mediaType = getMediaType(file.name);
+    if (!mediaType) return;
+    const url = URL.createObjectURL(file);
+    setActiveMediaModal({ file, url, type: mediaType });
+  };
   // Shared handler for processing accepted files
-  const processFiles = useCallback((files) => {
-    setFilesList(files);
-    files.forEach((file) => {
-      console.log("File ready for P2P chunking:", file.name, file.size);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const _arrayBuffer = event.target.result;
-        // TODO: Slice _arrayBuffer into chunks (e.g., 16KB) and stream over RTCDataChannel
-        console.log(`Successfully buffered ${file.name}. Ready to stream.`);
-      };
-      reader.onerror = (err) => console.error("File reading error:", err);
-      reader.readAsArrayBuffer(file);
+  const processFiles = useCallback((incomingFiles) => {
+    if (!incomingFiles || incomingFiles.length === 0) return;
+
+    // Assign a unique runtime ID to each file instance for safe keying and deletion
+    const processedFiles = incomingFiles.map((file, idx) => {
+      if (!file.id) {
+        file.id = `${file.name}-${file.size}-${file.lastModified}-${Date.now()}-${idx}`;
+      }
+      return file;
     });
+
+    setFilesList((prevList) => [...prevList, ...processedFiles]);
   }, [setFilesList]);
 
-  // Handler to remove a file from the list
+  // Handler to remove a single file from the list by unique ID
   const handleRemoveFile = useCallback((fileToRemove) => {
     setFilesList((prevList) =>
-      prevList.filter((file) => (file.path || file.name) !== (fileToRemove.path || fileToRemove.name))
+      prevList.filter((file) => (file.id || file.name) !== (fileToRemove.id || fileToRemove.name))
     );
   }, [setFilesList]);
 
@@ -69,7 +87,7 @@ export default function DropZone({ filesList, setFilesList }) {
         })}
       >
         <input {...getInputProps()} />
-        
+
         {/* Hardware Screw Details */}
         <span className="drop-zone-screw top-left" aria-hidden="true" />
         <span className="drop-zone-screw top-right" aria-hidden="true" />
@@ -80,11 +98,11 @@ export default function DropZone({ filesList, setFilesList }) {
           <div className="drop-status-led-group" aria-hidden="true">
             <span className={`decor-led ${isDragActive ? 'active' : filesList.length > 0 ? 'ready' : ''}`} />
             <span className="drop-status-text">
-              {isDragActive 
-                ? 'AWAITING_DROP' 
-                : filesList.length > 0 
-                ? 'QUEUE_ACTIVE' 
-                : 'STATUS_READY'}
+              {isDragActive
+                ? 'AWAITING_DROP'
+                : filesList.length > 0
+                  ? 'QUEUE_ACTIVE'
+                  : 'STATUS_READY'}
             </span>
           </div>
 
@@ -116,36 +134,67 @@ export default function DropZone({ filesList, setFilesList }) {
             <span className="glyph-dot" aria-hidden="true" />
             <span className="file-meta">MODULE.P2P.FILE_QUEUE // READY</span>
           </div>
-          
+
           <div className="file-list-container">
             <ul className="file-list">
-              {filesList.map((file) => (
-                <li key={file.path || file.name} className="file-item">
-                  <div className="file-info-group">
-                    <span className="file-name" title={file.name}>{file.name}</span>
-                    <span className="file-type-label">{getFileType(file)} FILE</span>
-                  </div>
-                  <div className="file-meta-group">
-                    <span className="file-size-badge">
-                      {formatFileSize(file.size)}
-                    </span>
-                    <button 
-                      className="file-delete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFile(file);
-                      }}
-                      title="Remove file"
-                      aria-label={`Remove ${file.name}`}
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </li>
-              ))}
+              {filesList.map((file, idx) => {
+                const mediaType = getMediaType(file.name);
+
+                return (
+                  <li key={file.id || `${file.name}-${idx}`} className="file-item">
+                    <div className="file-info-group">
+                      <span className="file-name" title={file.name}>{file.name}</span>
+                      <span className="file-type-label">{getFileType(file)} FILE</span>
+                    </div>
+                    <div className="file-meta-group">
+                      {mediaType && (
+                        <button
+                          type="button"
+                          className="media-preview-btn font-dot"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenMedia(file);
+                          }}
+                        >
+                          {mediaType === 'video' ? '▶ PLAY' : mediaType === 'audio' ? '♫ AUDIO' : '👁 VIEW'}
+                        </button>
+                      )}
+                      <span className="file-size-badge">
+                        {formatFileSize(file.size)}
+                      </span>
+                      <button
+                        className="file-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveFile(file);
+                        }}
+                        title="Remove file"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
+      )}
+
+      {/* Themed Media Player Modal */}
+      {activeMediaModal && (
+        <ThemedMediaPlayer
+          file={activeMediaModal.file}
+          mediaUrl={activeMediaModal.url}
+          mediaType={activeMediaModal.type}
+          onClose={() => {
+            if (activeMediaModal?.url) {
+              URL.revokeObjectURL(activeMediaModal.url);
+            }
+            setActiveMediaModal(null);
+          }}
+        />
       )}
     </div>
   );

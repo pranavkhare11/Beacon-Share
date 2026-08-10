@@ -1,0 +1,609 @@
+/* Themed Media Player Styles */
+
+.themed-media-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.themed-media-deck {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  background:
+    radial-gradient(var(--white-3) 1px, transparent 1px),
+    linear-gradient(170deg, var(--white-1), var(--white-2));
+  background-size: 12px 12px, 100% 100%;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow: hidden;
+  max-height: 92vh;
+}
+
+/* Fullscreen Overlay Layout - UI directly on top of video */
+.themed-media-deck:fullscreen,
+.themed-media-deck.is-fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  background: #000000 !important;
+  position: relative !important;
+}
+
+/* Hide screws in fullscreen mode */
+.themed-media-deck:fullscreen .deck-screw,
+.themed-media-deck.is-fullscreen .deck-screw {
+  display: none !important;
+}
+
+/* Fullscreen Video Viewport - Edge to Edge */
+.themed-media-deck:fullscreen .media-viewport-container.video-mode,
+.themed-media-deck.is-fullscreen .media-viewport-container.video-mode {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+}
+
+.themed-media-deck:fullscreen .video-wrapper,
+.themed-media-deck.is-fullscreen .video-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  background: #000000;
+  z-index: 1;
+}
+
+.themed-media-deck:fullscreen .media-video-element,
+.themed-media-deck.is-fullscreen .media-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Floating Overlay Header Bar in Fullscreen Mode */
+.themed-media-deck:fullscreen .media-deck-header,
+.themed-media-deck.is-fullscreen .media-deck-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0) 100%);
+  border-bottom: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.themed-media-deck:fullscreen .media-filename,
+.themed-media-deck.is-fullscreen .media-filename {
+  color: #ffffff;
+}
+
+.themed-media-deck:fullscreen .media-deck-tag,
+.themed-media-deck.is-fullscreen .media-deck-tag {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Floating Overlay Custom Control Bar in Fullscreen Mode */
+.themed-media-deck:fullscreen .custom-media-controls,
+.themed-media-deck.is-fullscreen .custom-media-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 1.5rem 2rem 1.75rem 2rem;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0) 100%);
+  border: none;
+  border-radius: 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.themed-media-deck:fullscreen .media-time-display,
+.themed-media-deck.is-fullscreen .media-time-display {
+  color: #ffffff;
+}
+
+/* Auto-Hide Animation for Overlay Controls in Fullscreen Mode */
+.themed-media-deck:fullscreen .media-deck-header.controls-hidden,
+.themed-media-deck.is-fullscreen .media-deck-header.controls-hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+.themed-media-deck:fullscreen .custom-media-controls.controls-hidden,
+.themed-media-deck.is-fullscreen .custom-media-controls.controls-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+/* Header */
+.media-deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 1rem;
+}
+
+.media-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.media-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.media-deck-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+.media-filename {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-save-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--text-main);
+  background: var(--text-main);
+  color: var(--white-1);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.media-save-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+.media-close-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--chip-border);
+  background: var(--red-soft);
+  color: var(--chip-text);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.media-close-btn:hover {
+  background: var(--red);
+  color: #ffffff;
+  border-color: var(--red);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+/* Viewport Containers */
+.media-viewport-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* Video Mode */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000000;
+  border-radius: 16px;
+  border: 1px solid var(--line-2);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.media-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* Audio Mode */
+.audio-hardware-deck {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--white-1);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.audio-spinning-dial {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #111111;
+  border: 2px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.audio-spinning-dial.spinning {
+  animation: spinDial 6s linear infinite;
+}
+
+@keyframes spinDial {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dial-core {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #444, #111);
+  border: 1px solid #666;
+}
+
+.dial-waveform-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.audio-spec-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audio-status-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.audio-time {
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  color: var(--red);
+  font-weight: 700;
+}
+
+/* Image Mode */
+.image-viewport-wrapper {
+  width: 100%;
+  max-height: 55vh;
+  min-height: 280px;
+  background: #0d0d0d;
+  border-radius: 16px;
+  border: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  padding: 1rem;
+}
+
+.media-image-element {
+  max-width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+  border-radius: 8px;
+}
+
+.image-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-top: 1px dashed var(--line);
+  padding-top: 1rem;
+}
+
+.image-tools-left, .image-tools-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-level {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  min-width: 45px;
+  text-align: center;
+}
+
+/* Custom Controls Bar */
+.custom-media-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  background: var(--white-1);
+  border: 1px solid var(--line);
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+}
+
+.controls-row-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.media-scrubber {
+  width: 100%;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--white-3);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--red);
+}
+
+.controls-row-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.controls-group-left, .controls-group-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.control-btn:hover {
+  background: var(--text-main);
+  color: var(--white-1);
+  transform: translateY(-1px);
+}
+
+.control-btn.play-main {
+  background: var(--text-main);
+  color: var(--white-1);
+}
+
+.control-btn.play-main:hover {
+  background: var(--red);
+  border-color: var(--red);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+.control-btn-icon {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-2);
+  background: var(--white-3);
+  color: var(--text-soft);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.volume-slider {
+  width: 80px;
+  height: 6px;
+  border-radius: 99px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.media-time-display {
+  font-size: 0.78rem;
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Player HUD Overlay Notice (-5s / +10s / Play / Pause / Audio Track) */
+.player-hud-notice {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(18, 18, 18, 0.88);
+  border: 1px solid var(--red);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  box-shadow: 0 0 24px var(--red-soft);
+  z-index: 30;
+  pointer-events: none;
+  animation: hudPop 0.85s ease-out forwards;
+}
+
+@keyframes hudPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+}
+
+/* Audio Stream Track Selector Dropdown */
+.audio-track-selector-wrapper {
+  position: relative;
+}
+
+.audio-track-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.audio-track-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  padding: 8px;
+  min-width: 200px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(14px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.audio-track-dropdown .dropdown-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  padding: 4px 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+  margin-bottom: 4px;
+}
+
+.audio-track-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #dddddd;
+  font-family: var(--font-dot);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.audio-track-dropdown .dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.audio-track-dropdown .dropdown-item.active {
+  background: var(--red-soft);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Mobile Responsiveness for Media Deck */
+@media (max-width: 640px) {
+  .themed-media-deck {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+  }
+
+  .media-filename {
+    font-size: 0.9rem;
+  }
+
+  .controls-row-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .controls-group-left, .controls-group-right {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .volume-slider {
+    width: 60px;
+  }
+}

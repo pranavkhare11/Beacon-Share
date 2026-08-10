@@ -1,21 +1,251 @@
-.page-panel {
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  margin-bottom: 0;
-}
-
-/* HomePage root div stretches to fill main content */
 .home-page {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+  width: 100%;
 }
 
-.page-panel-heading {
+/* Home Mode Switcher Bar */
+.home-mode-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 20px;
+}
 
-  font-size: 2rem;
+.mode-bar-left {
+  display: flex;
+  align-items: center;
+}
+
+.mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mode-tab-pill {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  border: 1px solid var(--line-2);
+  color: var(--text-soft);
+  font-family: var(--font-dot);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+}
+
+.mode-tab-pill:hover {
+  border-color: var(--text-main);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.mode-tab-pill.active {
+  border-color: var(--text-main);
+  background: var(--white-1);
+  color: var(--text-main);
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.tab-active-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--red);
+  margin-right: 8px;
+  animation: pulseLed 2s infinite ease-in-out;
+}
+
+/* Beacon Code Input Card */
+.beacon-input-card {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-radius: 22px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.beacon-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.beacon-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.beacon-header-title h3 {
+  margin: 0;
   font-family: var(--font-ui);
+  font-size: 1.15rem;
   font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.beacon-header-tag {
+  font-family: var(--font-dot);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+.beacon-input-desc {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.beacon-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.beacon-input-field-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.beacon-code-input {
+  flex: 1;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--line-2);
+  background: linear-gradient(170deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  padding: 0 1.25rem;
+  font-family: var(--font-dot);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+}
+
+.beacon-code-input:focus {
+  outline: none;
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 2px var(--white-4);
+}
+
+.beacon-connect-btn {
+  height: 46px;
+  padding: 0 1.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--text-main);
+  background: linear-gradient(180deg, var(--white-1), var(--white-2));
+  color: var(--text-main);
+  font-family: var(--font-dot);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.beacon-connect-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--red-soft);
+}
+
+.beacon-input-error {
+  font-family: var(--font-dot);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--chip-text);
+  background: var(--red-soft);
+  border: 1px solid var(--chip-border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Mechanical Screw Accents */
+.card-screw {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  border: 1px solid var(--line-2);
+  pointer-events: none;
+}
+
+.card-screw::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: #888888;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.card-screw.top-left { top: 12px; left: 12px; }
+.card-screw.top-right { top: 12px; right: 12px; }
+.card-screw.bottom-left { bottom: 12px; left: 12px; }
+.card-screw.bottom-right { bottom: 12px; right: 12px; }
+
+/* Responsive Adjustments for Home Page */
+@media (max-width: 640px) {
+  .home-mode-bar {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mode-tabs {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .mode-tab-pill {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.68rem;
+    padding: 6px 10px;
+  }
+
+  .beacon-input-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .beacon-input-field-group {
+    flex-direction: column;
+  }
+
+  .beacon-connect-btn {
+    width: 100%;
+  }
 }

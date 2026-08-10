@@ -26,6 +26,7 @@ function useNativeProvider({ onFiles }) {
   const [isDragActive, setIsDragActive] = useState(false);
   const dropRef = useRef(null);
   const inputRef = useRef(null);
+  const dragCounterRef = useRef(0);
 
   useEffect(() => {
     const node = dropRef.current;
@@ -34,19 +35,23 @@ function useNativeProvider({ onFiles }) {
     const handleDragOver = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsDragActive(true);
     };
 
     const handleDragEnter = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsDragActive(true);
+      dragCounterRef.current += 1;
+      if (dragCounterRef.current === 1) {
+        setIsDragActive(true);
+      }
     };
 
     const handleDragLeave = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (e.currentTarget === e.target) {
+      dragCounterRef.current -= 1;
+      if (dragCounterRef.current <= 0) {
+        dragCounterRef.current = 0;
         setIsDragActive(false);
       }
     };
@@ -54,6 +59,7 @@ function useNativeProvider({ onFiles }) {
     const handleDrop = (e) => {
       e.preventDefault();
       e.stopPropagation();
+      dragCounterRef.current = 0;
       setIsDragActive(false);
       if (e.dataTransfer?.files?.length > 0) {
         onFiles(Array.from(e.dataTransfer.files));
