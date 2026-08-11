@@ -147,3 +147,24 @@ export async function clearSession(peerId) {
     console.warn('Failed to clear session from IndexedDB:', err);
   }
 }
+
+// Clear all stored chunks for a specific file index only (used by REMOVE flush)
+export async function clearChunksForFile(peerId, fileIndex) {
+  try {
+    const db = await getDB();
+    const tx = db.transaction('chunks', 'readwrite');
+    const chunkStore = tx.objectStore('chunks');
+    const index = chunkStore.index('peer_file');
+    return new Promise((resolve) => {
+      const request = index.getAllKeys(IDBKeyRange.only([peerId, fileIndex]));
+      request.onsuccess = () => {
+        const keys = request.result || [];
+        keys.forEach(k => chunkStore.delete(k));
+        resolve();
+      };
+      request.onerror = () => resolve();
+    });
+  } catch (err) {
+    console.warn('Failed to clear chunks for file from IndexedDB:', err);
+  }
+}

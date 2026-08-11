@@ -22,11 +22,10 @@ const getFileType = (file) => {
   return extMatch ? extMatch[1].toUpperCase() : 'FILE';
 };
 
-// Helper to detect playable/viewable media types
+// Helper to detect playable/viewable media types (music & images only)
 const getMediaType = (filename) => {
   if (!filename) return null;
   const ext = filename.split('.').pop().toLowerCase();
-  if (['mp4', 'webm', 'mkv', 'mov', 'avi', 'm4v', 'ogv', '3gp'].includes(ext)) return 'video';
   if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'opus', 'wma'].includes(ext)) return 'audio';
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)) return 'image';
   return null;

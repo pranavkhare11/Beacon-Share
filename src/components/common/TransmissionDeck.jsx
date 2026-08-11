@@ -333,7 +333,7 @@ export default function TransmissionDeck({ filesList, setFilesList }) {
             conn.close();
             return;
           }
-          console.log(`Enqueuing download request for file index: ${data.fileIndex}`);
+          console.log(`Enqueuing download request for file index: ${data.fileIndex}, offset: ${data.offset || 0}`);
           transferQueueRef.current.push({ type: 'single', conn, fileIndex: data.fileIndex, offset: data.offset || 0 });
           processTransferQueue();
         } else if (data.type === 'request_download_all') {
@@ -354,6 +354,14 @@ export default function TransmissionDeck({ filesList, setFilesList }) {
         } else if (data.type === 'resume_file') {
           console.log(`Received resume signal for file index ${data.fileIndex}`);
           pausedFilesRef.current.delete(data.fileIndex);
+          cancelledFilesRef.current.delete(data.fileIndex);
+          // If the queue runner has fully exited (stream completed or was never running),
+          // re-enqueue a fresh task from the receiver's current byte offset
+          if (!isTransferringRef.current) {
+            console.log(`Re-queuing stopped transfer for file index ${data.fileIndex} from offset ${data.offset || 0}`);
+            transferQueueRef.current.push({ type: 'single', conn, fileIndex: data.fileIndex, offset: data.offset || 0 });
+            processTransferQueue();
+          }
         }
       });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Peer } from 'peerjs';
 import ThemedMediaPlayer from '../../components/common/ThemedMediaPlayer.jsx';
-import { saveSession, getSession, saveChunk, getChunksForFile, clearSession } from '../../utils/storageDB.js';
+import { saveSession, getSession, saveChunk, getChunksForFile, clearSession, clearChunksForFile } from '../../utils/storageDB.js';
 import './ReceiverPage.css';
 
 // Helper to extract file extension/type
@@ -11,11 +11,10 @@ const getFileType = (name) => {
   return extMatch ? extMatch[1].toUpperCase() : 'FILE';
 };
 
-// Helper to detect playable/viewable media types
+// Helper to detect playable/viewable media types (music & images only)
 const getMediaType = (filename) => {
   if (!filename) return null;
   const ext = filename.split('.').pop().toLowerCase();
-  if (['mp4', 'webm', 'mkv', 'mov', 'avi', 'm4v', 'ogv', '3gp'].includes(ext)) return 'video';
   if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'opus', 'wma'].includes(ext)) return 'audio';
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)) return 'image';
   return null;
@@ -91,11 +90,12 @@ export default function ReceiverPage() {
   const [activeConnection, setActiveConnection] = useState(null);
 
   // Keep references for async WebRTC closures & state tracking
-  const fileChunksRef = useRef({}); // Keyed by fileIndex -> ArrayBuffer[]
+  // receivedBytesRef tracks bytes received per fileIndex (no data in RAM - all in IndexedDB)
+  const receivedBytesRef = useRef({}); // { [fileIndex]: number }
   const filesListRef = useRef([]);
   const lastTimeRef = useRef(Date.now());
   const lastBytesRef = useRef(0);
-  
+
   // Connection timeout & Heartbeat refs
   const connectTimeoutRef = useRef(null);
   const heartbeatTimerRef = useRef(null);
@@ -106,6 +106,11 @@ export default function ReceiverPage() {
     filesListRef.current = filesList;
   }, [filesList]);
 
+  const peerIdRef = useRef(peerId || urlPeerId || '');
+  useEffect(() => {
+    peerIdRef.current = peerId || urlPeerId || '';
+  }, [peerId, urlPeerId]);
+
   // Pre-fill Peer ID if it comes from the URL path
   useEffect(() => {
     if (urlPeerId) {
@@ -113,7 +118,8 @@ export default function ReceiverPage() {
     }
   }, [urlPeerId]);
 
-  // Restore session & chunks from IndexedDB if reloading or reconnecting
+  // Restore session from IndexedDB if reloading or reconnecting
+  // IMPORTANT: only restores byte counts from DB metadata, NOT chunk data into RAM
   useEffect(() => {
     const restoreSessionIfPresent = async () => {
       const targetId = peerId || urlPeerId;
@@ -121,16 +127,16 @@ export default function ReceiverPage() {
 
       const savedSession = await getSession(targetId);
       if (savedSession && savedSession.filesList && savedSession.filesList.length > 0) {
-        console.log("Restoring session progress from IndexedDB for peer:", targetId);
+        console.log('Restoring session progress from IndexedDB for peer:', targetId);
         const restoredFiles = savedSession.filesList;
         setFilesList(restoredFiles);
         if (savedSession.pin) setPin(savedSession.pin);
 
-        // Restore chunks for each file index
+        // Restore ONLY byte counts — chunk data stays in IndexedDB, not RAM
         for (let i = 0; i < restoredFiles.length; i++) {
           const chunks = await getChunksForFile(targetId, i);
           if (chunks && chunks.length > 0) {
-            fileChunksRef.current[i] = chunks;
+            receivedBytesRef.current[i] = chunks.reduce((acc, c) => acc + c.byteLength, 0);
           }
         }
         setIsRestoredSession(true);
@@ -139,6 +145,41 @@ export default function ReceiverPage() {
 
     restoreSessionIfPresent();
   }, [urlPeerId]);
+
+  // Listen for priority chunk requests from Service Worker proxy
+  const lastPriorityRequestRef = useRef({});
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel('p2p-stream-channel');
+
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (data && data.type === 'PRIORITY_CHUNK_REQUEST') {
+        const { fileIndex, offset } = data;
+        const key = `${fileIndex}_${offset}`;
+        const now = Date.now();
+
+        // Throttle duplicate priority requests for the same offset within 800ms
+        if (lastPriorityRequestRef.current[key] && (now - lastPriorityRequestRef.current[key] < 800)) {
+          return;
+        }
+        lastPriorityRequestRef.current[key] = now;
+
+        if (activeConnection && activeConnection.open) {
+          console.log(`P2P SW Priority Stream Request for file index ${fileIndex} from offset ${offset}`);
+          activeConnection.send({
+            type: 'request_download',
+            fileIndex,
+            offset
+          });
+        }
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [activeConnection]);
 
   // Screen Wake Lock API helpers
   const requestWakeLock = async () => {
@@ -180,7 +221,7 @@ export default function ReceiverPage() {
   const startHeartbeat = (conn) => {
     stopHeartbeat();
     lastPongTimeRef.current = Date.now();
-    
+
     heartbeatTimerRef.current = setInterval(() => {
       if (!conn || !conn.open) {
         stopHeartbeat();
@@ -215,7 +256,7 @@ export default function ReceiverPage() {
 
     peer.on('open', (id) => {
       console.log("Client peer registered with ID:", id);
-      
+
       // Auto-connect if direct link contains Peer ID
       if (urlPeerId) {
         initiateConnection(urlPeerId);
@@ -360,56 +401,59 @@ export default function ReceiverPage() {
       }
       else if (data.type === 'meta') {
         console.log("Received P2P files metadata list:", data.files);
-        const targetId = peerId || urlPeerId;
-        setFilesList(prev => {
-          if (prev.length === 0) return data.files.map(f => ({ ...f, status: 'pending' }));
-          return data.files.map(inc => {
-            const existing = prev.find(p => p.name === inc.name && p.size === inc.size);
-            return existing ? { ...inc, status: existing.status } : { ...inc, status: 'pending' };
-          });
+        const targetId = peerIdRef.current || peerId || urlPeerId;
+        const newFiles = data.files.map(inc => {
+          const existing = filesListRef.current.find(p => p.name === inc.name && p.size === inc.size);
+          return existing ? { ...inc, status: existing.status } : { ...inc, status: 'pending' };
         });
+        setFilesList(newFiles);
         if (targetId) {
-          saveSession(targetId, pinRef.current, filesListRef.current);
+          saveSession(targetId, pinRef.current, newFiles);
         }
       }
       else if (data.type === 'start') {
         console.log(`Starting incoming stream for file index: ${data.fileIndex}`);
         setCurrentFileIndex(data.fileIndex);
         setProgress(0);
-        
-        // Key chunk buffer by fileIndex to isolate file streams
-        if (!fileChunksRef.current[data.fileIndex] || data.startOffset === 0) {
-          fileChunksRef.current[data.fileIndex] = [];
+
+        // Reset byte counter for this file (0 if fresh, keep existing if resuming)
+        if (data.startOffset === 0) {
+          receivedBytesRef.current[data.fileIndex] = 0;
         }
 
         lastTimeRef.current = Date.now();
-        lastBytesRef.current = 0;
+        lastBytesRef.current = receivedBytesRef.current[data.fileIndex] || 0;
         requestWakeLock();
 
-        setFilesList(prev => prev.map((f, idx) => {
+        const updatedFiles = filesListRef.current.map((f, idx) => {
           if (idx === data.fileIndex) {
             return { ...f, status: 'downloading' };
           }
           return f;
-        }));
+        });
+        setFilesList(updatedFiles);
+        const targetId = peerIdRef.current || peerId || urlPeerId;
+        if (targetId) {
+          saveSession(targetId, pinRef.current, updatedFiles);
+        }
       }
       else if (data.type === 'chunk') {
         const fileIndex = data.fileIndex;
-        if (!fileChunksRef.current[fileIndex]) {
-          fileChunksRef.current[fileIndex] = [];
-        }
-
         const arrayBuffer = data.data;
-        fileChunksRef.current[fileIndex].push(arrayBuffer);
-        const targetId = peerId || urlPeerId;
+        const targetId = peerIdRef.current || peerId || urlPeerId;
+
+        // Persist chunk to IndexedDB ONLY — zero RAM accumulation
         if (targetId) {
           saveChunk(targetId, fileIndex, data.offset, arrayBuffer);
         }
 
+        // Track total received bytes (just a number, not the data)
+        const prevBytes = receivedBytesRef.current[fileIndex] || 0;
+        const currentSize = prevBytes + arrayBuffer.byteLength;
+        receivedBytesRef.current[fileIndex] = currentSize;
+
         const file = filesListRef.current[fileIndex];
-        
         if (file) {
-          const currentSize = fileChunksRef.current[fileIndex].reduce((acc, c) => acc + c.byteLength, 0);
           const currentProgress = Math.min(100, Math.ceil((currentSize / file.size) * 100));
           setProgress(currentProgress);
 
@@ -425,7 +469,7 @@ export default function ReceiverPage() {
             const speedBps = deltaMs > 0 ? deltaBytes / (deltaMs / 1000) : 0;
             const speedMBps = (speedBps / (1024 * 1024)).toFixed(2);
             setTransferSpeed(`${speedMBps} MB/s`);
-            
+
             const remainingBytes = file.size - currentSize;
             const etaSecs = speedBps > 0 ? Math.ceil(remainingBytes / speedBps) : 0;
             setEta(etaSecs > 0 ? `${etaSecs}s` : 'COMPLETED');
@@ -438,11 +482,11 @@ export default function ReceiverPage() {
       else if (data.type === 'eof') {
         const fileIndex = data.fileIndex;
         const file = filesListRef.current[fileIndex];
-        const chunks = fileChunksRef.current[fileIndex] || [];
-        
+        const targetId = peerId || urlPeerId;
+
         if (file) {
-          console.log(`File stream EOF reached for: ${file.name}. Verifying size integrity...`);
-          const totalReceivedSize = chunks.reduce((acc, c) => acc + c.byteLength, 0);
+          const totalReceivedSize = receivedBytesRef.current[fileIndex] || 0;
+          console.log(`File stream EOF reached for: ${file.name}. Received ${totalReceivedSize} / ${file.size} bytes.`);
 
           // Size / Integrity Verification
           if (totalReceivedSize !== file.size) {
@@ -456,21 +500,24 @@ export default function ReceiverPage() {
             releaseWakeLock();
             return;
           }
-          
-          // Only pop up browser Save-As download prompt if explicitly requested by user via DOWNLOAD button
-          if (file.autoSaveOnEof !== false) {
-            const blob = new Blob(chunks, { type: 'application/octet-stream' });
-            const url = URL.createObjectURL(blob);
-            const cleanName = sanitizeFilename(file.name);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = cleanName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+          // Only auto-save if user requested full download (not media stream-only)
+          if (file.autoSaveOnEof !== false && targetId) {
+            getChunksForFile(targetId, fileIndex).then((chunks) => {
+              if (!chunks || chunks.length === 0) return;
+              const blob = new Blob(chunks, { type: 'application/octet-stream' });
+              const url = URL.createObjectURL(blob);
+              const cleanName = sanitizeFilename(file.name);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = cleanName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(url), 10000);
+            });
           }
-          
+
           setFilesList(prev => {
             const updated = prev.map((f, idx) => {
               if (idx === fileIndex) {
@@ -478,7 +525,6 @@ export default function ReceiverPage() {
               }
               return f;
             });
-            const targetId = peerId || urlPeerId;
             if (targetId) saveSession(targetId, pinRef.current, updated);
             return updated;
           });
@@ -564,8 +610,7 @@ export default function ReceiverPage() {
   // Request a single file download from Host (with resume offset calculation)
   const handleRequestDownload = (fileIndex, shouldAutoSave = true) => {
     if (activeConnection && activeConnection.open) {
-      const existingChunks = fileChunksRef.current[fileIndex] || [];
-      const currentReceivedBytes = existingChunks.reduce((acc, c) => acc + c.byteLength, 0);
+      const currentReceivedBytes = receivedBytesRef.current[fileIndex] || 0;
 
       setFilesList(prev => prev.map((f, idx) => {
         if (idx === fileIndex) {
@@ -574,10 +619,10 @@ export default function ReceiverPage() {
         return f;
       }));
 
-      activeConnection.send({ 
-        type: 'request_download', 
-        fileIndex, 
-        offset: currentReceivedBytes 
+      activeConnection.send({
+        type: 'request_download',
+        fileIndex,
+        offset: currentReceivedBytes
       });
     }
   };
@@ -595,7 +640,25 @@ export default function ReceiverPage() {
 
   // Resume single file transfer with byte offset recalculation
   const handleResumeSingleTransfer = (fileIndex) => {
-    handleRequestDownload(fileIndex, true);
+    if (!activeConnection || !activeConnection.open) return;
+
+    const file = filesList[fileIndex];
+    if (!file) return;
+
+    const currentReceivedBytes = receivedBytesRef.current[fileIndex] || 0;
+
+    setFilesList(prev => prev.map((f, idx) => {
+      if (idx === fileIndex) return { ...f, status: 'downloading', autoSaveOnEof: true };
+      return f;
+    }));
+
+    if (file.status === 'paused') {
+      // Tell host to unblock its paused loop
+      activeConnection.send({ type: 'resume_file', fileIndex, offset: currentReceivedBytes });
+    } else {
+      // File was cancelled/error - start fresh from current offset
+      activeConnection.send({ type: 'request_download', fileIndex, offset: currentReceivedBytes });
+    }
   };
 
   // Cancel single file transfer
@@ -638,57 +701,85 @@ export default function ReceiverPage() {
     setPin('');
     setRequiresPinEntry(false);
     setIsRestoredSession(false);
-    fileChunksRef.current = {};
+    receivedBytesRef.current = {};
   };
 
   // Open media preview modal (for movies, audio, images)
+  // ThemedMediaPlayer loads chunk data from IndexedDB directly — no RAM involvement here
   const handleOpenMediaPreview = (file, idx) => {
     const mediaType = getMediaType(file.name);
     if (!mediaType) return;
 
-    let chunks = fileChunksRef.current[idx] || [];
-
-    // Auto request stream transfer without forcing browser download popup
-    if (file.status !== 'finished' && file.status !== 'downloading' && chunks.length === 0) {
+    // Auto-start download only if idle (not downloading, not paused, not finished)
+    if (file.status !== 'finished' && file.status !== 'downloading' && file.status !== 'paused') {
       handleRequestDownload(idx, false);
     }
 
-    const mimeType = getMediaMimeType(file.name);
-    const blob = new Blob(chunks, { type: mimeType });
-    const objectUrl = chunks.length > 0 ? URL.createObjectURL(blob) : '';
-
+    const targetId = peerId || urlPeerId;
     setActiveMediaModal({
       file,
-      url: objectUrl,
       type: mediaType,
-      fileIndex: idx
+      fileIndex: idx,
+      peerId: targetId
     });
   };
 
   const isAnyFileDownloading = filesList.some(f => f.status === 'downloading');
 
-  // Save a finished file to disk on demand
+  // Save a finished file to disk on demand — reads from IndexedDB, not RAM
   const handleSaveFinishedFile = (fileIndex) => {
     const file = filesList[fileIndex];
-    const chunks = fileChunksRef.current[fileIndex] || [];
-    if (!file || chunks.length === 0) return;
+    if (!file) return;
+    const targetId = peerId || urlPeerId;
+    if (!targetId) return;
 
-    const blob = new Blob(chunks, { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const cleanName = sanitizeFilename(file.name);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = cleanName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    getChunksForFile(targetId, fileIndex).then((chunks) => {
+      if (!chunks || chunks.length === 0) return;
+      const blob = new Blob(chunks, { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const cleanName = sanitizeFilename(file.name);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = cleanName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    });
   };
 
-  // Remove a file entry from the list (for cancelled / error / finished files)
+  // Remove/flush a file: cancel active download, clear byte counter,
+  // wipe IndexedDB chunks for this file, and reset its status to pending.
   const handleRemoveFile = (fileIndex) => {
-    setFilesList(prev => prev.filter((_, idx) => idx !== fileIndex));
-    delete fileChunksRef.current[fileIndex];
+    const file = filesList[fileIndex];
+    if (!file) return;
+
+    // Cancel active download on host if running
+    if (activeConnection && activeConnection.open) {
+      activeConnection.send({ type: 'cancel_file', fileIndex });
+    }
+
+    // Close media modal if it's for this file
+    if (activeMediaModal && activeMediaModal.fileIndex === fileIndex) {
+      setActiveMediaModal(null);
+    }
+
+    // Clear byte counter for this file
+    receivedBytesRef.current[fileIndex] = 0;
+
+    // Wipe IndexedDB chunks for this file
+    const targetId = peerId || urlPeerId;
+    if (targetId) {
+      clearChunksForFile(targetId, fileIndex).then(() => {
+        saveSession(targetId, pinRef.current, filesListRef.current);
+      });
+    }
+
+    // Reset file status to pending in list
+    setFilesList(prev => prev.map((f, idx) => {
+      if (idx === fileIndex) return { ...f, status: 'pending', error: undefined };
+      return f;
+    }));
   };
 
   return (
@@ -719,9 +810,9 @@ export default function ReceiverPage() {
               <div className="loading-dots font-dot" style={{ fontSize: '0.72rem', letterSpacing: '0.12em', color: 'var(--text-faint)', marginBottom: '1.5rem' }}>
                 VERIFYING BEACON KEY
               </div>
-              <button 
-                type="button" 
-                onClick={handleCancelConnection} 
+              <button
+                type="button"
+                onClick={handleCancelConnection}
                 className="cancel-link-btn font-dot"
               >
                 CANCEL LINK
@@ -742,10 +833,10 @@ export default function ReceiverPage() {
 
                 <div className="input-group">
                   <label className="input-label font-dot">SECURE_PIN // 4-DIGITS</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     maxLength={4}
-                    className="receiver-input font-dot passcode-input" 
+                    className="receiver-input font-dot passcode-input"
                     value={pin}
                     onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                     placeholder="••••"
@@ -755,8 +846,8 @@ export default function ReceiverPage() {
 
                 {errorMsg && <div className="error-message-bar font-dot">{errorMsg}</div>}
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="establish-btn font-dot"
                 >
                   VERIFY PASSCODE
@@ -767,7 +858,7 @@ export default function ReceiverPage() {
             <>
               <h2>{urlPeerId ? 'Authorize Connection' : 'Establish P2P Receive Channel'}</h2>
               <p className="receiver-desc">
-                {urlPeerId 
+                {urlPeerId
                   ? 'Connect to the sender device to inspect metadata. PIN code prompt will render dynamically if required.'
                   : 'Enter the Sender\'s Peer Connection ID. PIN code verification will prompt dynamically if required.'}
               </p>
@@ -781,9 +872,9 @@ export default function ReceiverPage() {
                 ) : (
                   <div className="input-group">
                     <label className="input-label font-dot">PEER_CONNECTION_ID</label>
-                    <input 
-                      type="text" 
-                      className="receiver-input font-dot" 
+                    <input
+                      type="text"
+                      className="receiver-input font-dot"
                       value={peerId}
                       onChange={(e) => setPeerId(e.target.value.toUpperCase())}
                       placeholder="E.G. BEACON-8F92"
@@ -793,8 +884,8 @@ export default function ReceiverPage() {
 
                 {errorMsg && <div className="error-message-bar font-dot">{errorMsg}</div>}
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="establish-btn font-dot"
                 >
                   ESTABLISH CHANNEL
@@ -822,7 +913,7 @@ export default function ReceiverPage() {
                 <span className="decor-led active" />
                 <span className="linked-label font-dot">CONNECTED TO SENDER: {peerId}</span>
               </div>
-              <button 
+              <button
                 onClick={handleRequestDownloadAll}
                 className="receiver-download-all-btn font-dot"
                 disabled={isAnyFileDownloading || filesList.every(f => f.status === 'finished')}
@@ -850,8 +941,8 @@ export default function ReceiverPage() {
                   const mediaType = getMediaType(file.name);
 
                   return (
-                    <li 
-                      key={file.id || `${file.name}-${idx}`} 
+                    <li
+                      key={file.id || `${file.name}-${idx}`}
                       className={`receiver-file-item ${isDownloading ? 'active' : ''} ${isFinished ? 'finished' : ''} ${isError ? 'error' : ''}`}
                     >
                       <div className="receiver-file-info">
@@ -862,8 +953,8 @@ export default function ReceiverPage() {
                       <div className="receiver-file-actions">
                         {/* Column 1: Play / View (media only) */}
                         {mediaType && (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="media-preview-btn font-dot"
                             onClick={() => handleOpenMediaPreview(file, idx)}
                           >
@@ -873,7 +964,7 @@ export default function ReceiverPage() {
 
                         {/* Column 2: Download / Pause / Resume */}
                         {isPending && (
-                          <button 
+                          <button
                             className="file-action-btn download-action font-dot"
                             onClick={() => handleRequestDownload(idx)}
                             disabled={isAnyFileDownloading}
@@ -882,7 +973,7 @@ export default function ReceiverPage() {
                           </button>
                         )}
                         {isDownloading && (
-                          <button 
+                          <button
                             className="file-action-btn pause-action font-dot"
                             onClick={() => handlePauseSingleTransfer(idx)}
                           >
@@ -890,7 +981,7 @@ export default function ReceiverPage() {
                           </button>
                         )}
                         {isPaused && (
-                          <button 
+                          <button
                             className="file-action-btn download-action font-dot"
                             onClick={() => handleResumeSingleTransfer(idx)}
                           >
@@ -898,7 +989,7 @@ export default function ReceiverPage() {
                           </button>
                         )}
                         {isFinished && (
-                          <button 
+                          <button
                             className="file-action-btn download-action font-dot"
                             onClick={() => handleSaveFinishedFile(idx)}
                           >
@@ -906,7 +997,7 @@ export default function ReceiverPage() {
                           </button>
                         )}
                         {(isError || isCancelled) && (
-                          <button 
+                          <button
                             className="file-action-btn download-action font-dot"
                             onClick={() => handleRequestDownload(idx)}
                             disabled={isAnyFileDownloading}
@@ -917,7 +1008,7 @@ export default function ReceiverPage() {
 
                         {/* Column 3: Cancel / Delete */}
                         {(isDownloading || isPaused) && (
-                          <button 
+                          <button
                             className="file-action-btn cancel-action font-dot"
                             onClick={() => handleCancelSingleTransfer(idx)}
                           >
@@ -925,7 +1016,7 @@ export default function ReceiverPage() {
                           </button>
                         )}
                         {(isFinished || isCancelled || isError) && (
-                          <button 
+                          <button
                             className="file-action-btn delete-action font-dot"
                             onClick={() => handleRemoveFile(idx)}
                           >
@@ -954,9 +1045,9 @@ export default function ReceiverPage() {
 
             <div className="deck-progress-container" style={{ margin: '1.25rem 0' }}>
               <div className="deck-progress-bar-wrapper">
-                <div 
-                  className="deck-progress-bar-fill" 
-                  style={{ width: `${currentFileIndex >= filesList.length ? 100 : progress}%` }} 
+                <div
+                  className="deck-progress-bar-fill"
+                  style={{ width: `${currentFileIndex >= filesList.length ? 100 : progress}%` }}
                 />
               </div>
               <span className="deck-progress-percentage font-dot">
@@ -968,8 +1059,8 @@ export default function ReceiverPage() {
               <div className="deck-status-summary">
                 <span className="summary-label font-dot">FILE_STAGE:</span>
                 <span className="summary-value font-dot">
-                  {currentFileIndex >= filesList.length 
-                    ? 'ALL TRANSFERS COMPLETED' 
+                  {currentFileIndex >= filesList.length
+                    ? 'ALL TRANSFERS COMPLETED'
                     : `STREAMING FILE ${currentFileIndex + 1} OF ${filesList.length}`}
                 </span>
               </div>
@@ -985,14 +1076,11 @@ export default function ReceiverPage() {
       {activeMediaModal && (
         <ThemedMediaPlayer
           file={activeMediaModal.file}
-          mediaUrl={activeMediaModal.url}
           mediaType={activeMediaModal.type}
-          onClose={() => {
-            if (activeMediaModal?.url) {
-              URL.revokeObjectURL(activeMediaModal.url);
-            }
-            setActiveMediaModal(null);
-          }}
+          fileStatus={filesList[activeMediaModal.fileIndex]?.status || 'pending'}
+          peerId={activeMediaModal.peerId}
+          fileIndex={activeMediaModal.fileIndex}
+          onClose={() => setActiveMediaModal(null)}
         />
       )}
     </div>
